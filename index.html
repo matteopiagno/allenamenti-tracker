@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Allenamenti Strava</title>
+    <!-- Tailwind CSS per il layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js per i grafici -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PapaParse per leggere il CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 font-sans">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        
+        <!-- Header -->
+        <header class="mb-8 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Dashboard Allenamenti</h1>
+                <p class="text-gray-500 mt-1">Dati estratti automaticamente da <code class="bg-gray-200 px-1 rounded">workouts.csv</code></p>
+            </div>
+            <!-- Filtro Sport -->
+            <div>
+                <label for="sportFilter" class="block text-sm font-medium text-gray-700 mb-1">Filtra per Sport</label>
+                <select id="sportFilter" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-48 p-2.5">
+                    <option value="All">Tutti gli sport</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Attività Totali</h3>
+                <p id="kpi-count" class="text-3xl font-bold text-blue-600 mt-2">0</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Distanza Totale (km)</h3>
+                <p id="kpi-distance" class="text-3xl font-bold text-green-600 mt-2">0.0</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Ore Totali</h3>
+                <p id="kpi-duration" class="text-3xl font-bold text-orange-500 mt-2">0.0</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Dislivello (m)</h3>
+                <p id="kpi-elevation" class="text-3xl font-bold text-purple-600 mt-2">0</p>
+            </div>
+        </div>
+
+        <!-- Charts Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Grafico Volume Settimanale -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Volume mensile (km)</h2>
+                <div class="relative h-72">
+                    <canvas id="volumeChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Grafico Ripartizione Sport -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Distanza per Sport</h2>
+                <div class="relative h-72 flex justify-center">
+                    <canvas id="sportChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabella Ultimi Allenamenti -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h2 class="text-lg font-semibold text-gray-800">Ultimi Allenamenti</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3">Data</th>
+                            <th class="px-6 py-3">Nome</th>
+                            <th class="px-6 py-3">Sport</th>
+                            <th class="px-6 py-3">Distanza (km)</th>
+                            <th class="px-6 py-3">Durata (min)</th>
+                            <th class="px-6 py-3">Passo/Velocità</th>
+                            <th class="px-6 py-3">FC Media</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Generato dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let allData = [];
+        let volumeChartInstance = null;
+        let sportChartInstance = null;
+
+        // Inizializza l'app
+        async function init() {
+            try {
+                // Legge il file CSV dalla stessa cartella
+                const response = await fetch('workouts.csv');
+                if (!response.ok) throw new Error('File workouts.csv non trovato');
+                const csvText = await response.text();
+                
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        allData = results.data;
+                        // Ordina per data (più recenti prima)
+                        allData.sort((a, b) => new Date(b.data) - new Date(a.data));
+                        
+                        populateSportFilter();
+                        updateDashboard();
+                        
+                        // Aggiunge event listener al filtro
+                        document.getElementById('sportFilter').addEventListener('change', updateDashboard);
+                    }
+                });
+            } catch (error) {
+                console.error("Errore nel caricamento del CSV:", error);
+                document.getElementById('table-body').innerHTML = `
+                    <tr><td colspan="7" class="px-6 py-8 text-center text-red-500">
+                        Impossibile caricare workouts.csv.<br>Assicurati che il file sia nella stessa cartella e che tu stia usando un server web (es. GitHub Pages o Live Server).
+                    </td></tr>
+                `;
+            }
+        }
+
+        // Popola il menu a tendina degli sport
+        function populateSportFilter() {
+            const sports = [...new Set(allData.map(d => d.sport).filter(s => s))];
+            const select = document.getElementById('sportFilter');
+            sports.forEach(sport => {
+                const option = document.createElement('option');
+                option.value = sport;
+                option.textContent = sport;
+                select.appendChild(option);
+            });
+        }
+
+        // Aggiorna l'intera dashboard in base al filtro
+        function updateDashboard() {
+            const selectedSport = document.getElementById('sportFilter').value;
+            const filteredData = selectedSport === 'All' 
+                ? allData 
+                : allData.filter(d => d.sport === selectedSport);
+
+            updateKPIs(filteredData);
+            updateTable(filteredData);
+            updateVolumeChart(filteredData);
+            updateSportChart(filteredData); // Aggiorna anche la torta (se filtrato, sarà monocolore, ma utile per contesto)
+        }
+
+        // Calcola e aggiorna i numeri in alto
+        function updateKPIs(data) {
+            document.getElementById('kpi-count').textContent = data.length;
+            
+            const totalDist = data.reduce((sum, d) => sum + (parseFloat(d.distanza_km) || 0), 0);
+            document.getElementById('kpi-distance').textContent = totalDist.toLocaleString('it-IT', {maximumFractionDigits: 1});
+            
+            const totalMins = data.reduce((sum, d) => sum + (parseFloat(d.durata_min) || 0), 0);
+            document.getElementById('kpi-duration').textContent = (totalMins / 60).toLocaleString('it-IT', {maximumFractionDigits: 1});
+            
+            const totalElev = data.reduce((sum, d) => sum + (parseFloat(d.dislivello_m) || 0), 0);
+            document.getElementById('kpi-elevation').textContent = totalElev.toLocaleString('it-IT', {maximumFractionDigits: 0});
+        }
+
+        // Popola le righe della tabella
+        function updateTable(data) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            // Mostra solo gli ultimi 15
+            const recentData = data.slice(0, 15);
+            
+            recentData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "bg-white border-b hover:bg-gray-50";
+                
+                // Formattazione data (YYYY-MM-DD -> DD/MM/YYYY)
+                const dateParts = row.data.split('-');
+                const displayDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : row.data;
+                
+                // Formattazione passo
+                let paceDisplay = row.passo_min_km ? `${row.passo_min_km} /km` : '-';
+                if(row.sport === 'Ride' || row.sport === 'VirtualRide') {
+                    // Se bici, converte passo in velocità (km/h)
+                    const pace = parseFloat(row.passo_min_km);
+                    if(pace > 0) {
+                        const speed = (60 / pace).toFixed(1);
+                        paceDisplay = `${speed} km/h`;
+                    }
+                }
+
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${displayDate}</td>
+                    <td class="px-6 py-4">${row.nome || 'Allenamento'}</td>
+                    <td class="px-6 py-4"><span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">${row.sport}</span></td>
+                    <td class="px-6 py-4 font-medium">${parseFloat(row.distanza_km || 0).toFixed(2)}</td>
+                    <td class="px-6 py-4">${parseFloat(row.durata_min || 0).toFixed(1)}</td>
+                    <td class="px-6 py-4">${paceDisplay}</td>
+                    <td class="px-6 py-4">${row.fc_media || '-'} bpm</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Disegna il grafico a barre (volume mensile)
+        function updateVolumeChart(data) {
+            const ctx = document.getElementById('volumeChart').getContext('2d');
+            
+            // Raggruppa per mese (YYYY-MM)
+            const monthlyData = {};
+            data.forEach(d => {
+                if(!d.data) return;
+                const month = d.data.substring(0, 7); // Prende YYYY-MM
+                if(!monthlyData[month]) monthlyData[month] = 0;
+                monthlyData[month] += (parseFloat(d.distanza_km) || 0);
+            });
+
+            // Ordina cronologicamente
+            const sortedMonths = Object.keys(monthlyData).sort();
+            // Prende solo gli ultimi 12 mesi
+            const recentMonths = sortedMonths.slice(-12);
+            
+            const labels = recentMonths.map(m => {
+                const [year, month] = m.split('-');
+                const date = new Date(year, month - 1);
+                return date.toLocaleDateString('it-IT', { month: 'short', year: '2-digit' });
+            });
+            const values = recentMonths.map(m => monthlyData[m].toFixed(1));
+
+            if (volumeChartInstance) volumeChartInstance.destroy();
+
+            volumeChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Distanza (km)',
+                        data: values,
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Disegna il grafico a torta (ripartizione sport)
+        function updateSportChart(data) {
+            const ctx = document.getElementById('sportChart').getContext('2d');
+            
+            const sportTotals = {};
+            data.forEach(d => {
+                const sport = d.sport || 'Altro';
+                if(!sportTotals[sport]) sportTotals[sport] = 0;
+                sportTotals[sport] += (parseFloat(d.distanza_km) || 0);
+            });
+
+            const labels = Object.keys(sportTotals);
+            const values = labels.map(l => sportTotals[l].toFixed(1));
+
+            if (sportChartInstance) sportChartInstance.destroy();
+
+            sportChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#6366f1'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        // Avvio
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
