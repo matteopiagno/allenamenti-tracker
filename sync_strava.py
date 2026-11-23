@@ -7,7 +7,7 @@ CLIENT_ID = os.environ.get("STRAVA_CLIENT_ID", "")
 CLIENT_SECRET = os.environ.get("STRAVA_CLIENT_SECRET", "")
 REFRESH_TOKEN = os.environ.get("STRAVA_REFRESH_TOKEN", "")
 
-def get_peak_power(time_arr, watts_arr, window_sec=1200):
+def get_peak_power(time_arr, watts_arr, window_sec):
     max_avg = 0
     current_sum = 0
     left = 0
@@ -16,8 +16,8 @@ def get_peak_power(time_arr, watts_arr, window_sec=1200):
         while time_arr[right] - time_arr[left] > window_sec:
             current_sum -= watts_arr[left]
             left += 1
-        # allow small tolerance
-        if time_arr[right] - time_arr[left] >= window_sec - 5:
+        # Tolleranza di 5 secondi o 10% per accettare la finestra
+        if time_arr[right] - time_arr[left] >= window_sec * 0.9:
             avg = current_sum / (right - left + 1)
             if avg > max_avg:
                 max_avg = avg
@@ -66,7 +66,6 @@ def main():
     access_token = auth_res.json()["access_token"]
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    # Leggi il CSV esistente per capire quali stream abbiamo già scaricato
     existing_data = {}
     csv_file = "workouts.csv"
     
@@ -78,8 +77,11 @@ def main():
         "fc_media", "fc_max",
         "potenza_media_w", "potenza_norm_w", "potenza_max_w", "lavoro_kj",
         "cadenza_media", "temp_media_c", "suffer_score", "pr_count",
-        # Nuove metriche avanzate:
-        "peak_20m_w", "ef_1st_half", "ef_2nd_half", "decoupling_pct"
+        "ef_1st_half", "ef_2nd_half", "decoupling_pct",
+        # Power Curve Peaks (in Watts)
+        "peak_5s_w", "peak_15s_w", "peak_30s_w", "peak_1m_w", "peak_2m_w",
+        "peak_3m_w", "peak_5m_w", "peak_10m_w", "peak_15m_w", "peak_20m_w",
+        "peak_30m_w", "peak_45m_w", "peak_60m_w"
     ]
 
     if os.path.exists(csv_file):
@@ -88,7 +90,6 @@ def main():
             for row in reader:
                 existing_data[row["id"]] = row
 
-    # Scarica lista attività
     activities = []
     page = 1
     while True:
@@ -104,8 +105,8 @@ def main():
             break
         activities.extend(batch)
         page += 1
+        if page > 5: break
 
-    # Estrai Streams per le nuove attività con potenza e cardio (Max 40 per non superare il rate limit)
     streams_fetched = 0
     RUN_SPORTS = {"Run", "TrailRun", "VirtualRun", "Walk", "Hike"}
     
@@ -155,24 +156,23 @@ def main():
             "temp_media_c": a.get("average_temp") if a.get("average_temp") is not None else "",
             "suffer_score": a.get("suffer_score") if a.get("suffer_score") is not None else "",
             "pr_count": a.get("pr_count", 0) or 0,
-            "peak_20m_w": "",
-            "ef_1st_half": "",
-            "ef_2nd_half": "",
-            "decoupling_pct": ""
+            "ef_1st_half": "", "ef_2nd_half": "", "decoupling_pct": "",
+            "peak_5s_w": "", "peak_15s_w": "", "peak_30s_w": "", "peak_1m_w": "", "peak_2m_w": "",
+            "peak_3m_w": "", "peak_5m_w": "", "peak_10m_w": "", "peak_15m_w": "", "peak_20m_w": "",
+            "peak_30m_w": "", "peak_45m_w": "", "peak_60m_w": ""
         }
         
         if a_id in existing_data:
-            row["peak_20m_w"] = existing_data[a_id].get("peak_20m_w", "")
-            row["ef_1st_half"] = existing_data[a_id].get("ef_1st_half", "")
-            row["ef_2nd_half"] = existing_data[a_id].get("ef_2nd_half", "")
-            row["decoupling_pct"] = existing_data[a_id].get("decoupling_pct", "")
+            for k in ["ef_1st_half", "ef_2nd_half", "decoupling_pct", 
+                      "peak_5s_w", "peak_15s_w", "peak_30s_w", "peak_1m_w", "peak_2m_w", 
+                      "peak_3m_w", "peak_5m_w", "peak_10m_w", "peak_15m_w", "peak_20m_w", 
+                      "peak_30m_w", "peak_45m_w", "peak_60m_w"]:
+                row[k] = existing_data[a_id].get(k, "")
             
-        # Se mancano i dati avanzati, ci sono sensori di watt e cardio, e l'allenamento dura >= 20 min
-        needs_streams = (row["peak_20m_w"] == "" or row["decoupling_pct"] == "")
-        has_sensors = a.get("device_watts") and a.get("has_heartrate")
-        is_long_enough = moving_sec >= 1200
+        needs_streams = (row["peak_5s_w"] == "" or row["decoupling_pct"] == "")
+        has_sensors = a.get("device_watts")
         
-        if needs_streams and has_sensors and is_long_enough and streams_fetched < 40:
+        if needs_streams and has_sensors and streams_fetched < 40:
             try:
                 s_res = requests.get(
                     f"https://www.strava.com/api/v3/activities/{a_id}/streams?keys=time,watts,heartrate&key_by_type=true",
@@ -186,7 +186,16 @@ def main():
                     h_arr = s_data.get("heartrate", {}).get("data", [])
                     
                     if t_arr and w_arr:
-                        row["peak_20m_w"] = get_peak_power(t_arr, w_arr, 1200)
+                        windows = {
+                            "peak_5s_w": 5, "peak_15s_w": 15, "peak_30s_w": 30,
+                            "peak_1m_w": 60, "peak_2m_w": 120, "peak_3m_w": 180,
+                            "peak_5m_w": 300, "peak_10m_w": 600, "peak_15m_w": 900,
+                            "peak_20m_w": 1200, "peak_30m_w": 1800, "peak_45m_w": 2700, "peak_60m_w": 3600
+                        }
+                        for key, sec in windows.items():
+                            if moving_sec >= sec:
+                                row[key] = get_peak_power(t_arr, w_arr, sec)
+                                
                     if t_arr and w_arr and h_arr:
                         ef1, ef2, dec = calculate_decoupling(t_arr, w_arr, h_arr)
                         row["ef_1st_half"] = ef1
