@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Performance & Telemetry Dashboard</title>
+    <title>Performance & Telemetry Dashboard Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -15,27 +15,43 @@
         <header class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60">
             <div>
                 <div class="flex items-center gap-2">
-                    <span class="inline-block w-3 h-3 rounded-full bg-orange-500"></span>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-orange-600">Telemetria Strava & Garmin</span>
+                    <span class="inline-block w-3 h-3 rounded-full bg-orange-500 animate-pulse"></span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-orange-600">Advanced Telemetry</span>
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">Dashboard Analisi Allenamenti</h1>
                 <p id="last-sync-info" class="text-slate-500 text-sm mt-1">Caricamento dati da <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">workouts.csv</code>...</p>
             </div>
             
-            <div class="flex flex-wrap gap-3">
+            <div class="flex flex-wrap gap-3 items-end">
+                <!-- Dropdown Periodo -->
                 <div>
                     <label for="periodFilter" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Periodo</label>
-                    <select id="periodFilter" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block w-44 p-2.5">
+                    <select id="periodFilter" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block w-44 p-2.5 transition-colors">
                         <option value="30">Ultimi 30 giorni</option>
                         <option value="90">Ultimi 90 giorni</option>
                         <option value="365" selected>Ultimi 12 mesi</option>
                         <option value="ytd">Anno corrente (YTD)</option>
                         <option value="all">Tutto lo storico</option>
+                        <option value="custom" class="font-bold text-orange-600">Personalizzato...</option>
                     </select>
                 </div>
+
+                <!-- Date Picker (nascosti di default) -->
+                <div id="customDateContainer" class="hidden flex gap-2 items-end">
+                    <div>
+                        <label for="startDate" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Da</label>
+                        <input type="date" id="startDate" class="bg-white border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block p-2">
+                    </div>
+                    <div>
+                        <label for="endDate" class="block text-xs font-semibold text-slate-500 uppercase mb-1">A</label>
+                        <input type="date" id="endDate" class="bg-white border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block p-2">
+                    </div>
+                </div>
+
+                <!-- Dropdown Sport -->
                 <div>
                     <label for="sportFilter" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Sport</label>
-                    <select id="sportFilter" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block w-44 p-2.5">
+                    <select id="sportFilter" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block w-44 p-2.5 transition-colors">
                         <option value="All">Tutti gli sport</option>
                     </select>
                 </div>
@@ -61,7 +77,7 @@
 
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
                 <div class="flex justify-between items-start">
-                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Potenza Media / NP</h3>
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Potenza (NP / AVG)</h3>
                     <span class="text-xs bg-amber-50 text-amber-700 font-medium px-2 py-0.5 rounded-full">Watt</span>
                 </div>
                 <p id="kpi-power" class="text-2xl sm:text-3xl font-bold text-amber-600 mt-2">- <span class="text-base font-normal text-slate-500">W</span></p>
@@ -70,88 +86,94 @@
 
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
                 <div class="flex justify-between items-start">
-                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Frequenza Cardiaca</h3>
-                    <span class="text-xs bg-rose-50 text-rose-600 font-medium px-2 py-0.5 rounded-full">BPM</span>
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Stima FTP (95% 20m)</h3>
+                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded-full">New</span>
                 </div>
-                <p id="kpi-hr" class="text-2xl sm:text-3xl font-bold text-rose-600 mt-2">- <span class="text-base font-normal text-slate-500">bpm</span></p>
-                <p id="kpi-hr-sub" class="text-xs text-slate-500 mt-1">Picco max registrato: -</p>
+                <p id="kpi-ftp" class="text-2xl sm:text-3xl font-bold text-emerald-600 mt-2">- <span class="text-base font-normal text-slate-500">W</span></p>
+                <p id="kpi-ftp-sub" class="text-xs text-slate-500 mt-1">Picco 20m max periodo: -</p>
             </div>
         </div>
 
         <!-- Riga 2 KPI: Fisiologia Avanzata -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cadenza Media</h3>
-                <p id="kpi-cadence" class="text-2xl font-bold text-indigo-600 mt-2">-</p>
-                <p class="text-xs text-slate-500 mt-1">rpm (bici) / spm (corsa)</p>
+                <div class="flex justify-between items-start">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Frequenza Cardiaca</h3>
+                    <span class="text-xs bg-rose-50 text-rose-600 font-medium px-2 py-0.5 rounded-full">BPM</span>
+                </div>
+                <p id="kpi-hr" class="text-2xl sm:text-3xl font-bold text-rose-600 mt-2">- <span class="text-base font-normal text-slate-500">bpm</span></p>
+                <p id="kpi-hr-sub" class="text-xs text-slate-500 mt-1">Picco max registrato: -</p>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Efficienza Aerobica (EF)</h3>
-                <p id="kpi-ef" class="text-2xl font-bold text-emerald-600 mt-2">-</p>
-                <p id="kpi-ef-sub" class="text-xs text-slate-500 mt-1">Output per battito cardiaco</p>
+                <div class="flex justify-between items-start">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Aerobic Decoupling</h3>
+                    <span class="text-xs bg-purple-50 text-purple-700 font-medium px-2 py-0.5 rounded-full">Durability</span>
+                </div>
+                <p id="kpi-decoupling" class="text-2xl font-bold text-purple-600 mt-2">- <span class="text-base font-normal text-slate-500">%</span></p>
+                <p id="kpi-decoupling-sub" class="text-xs text-slate-500 mt-1">Deriva tra 1° e 2° metà (ideale < 5%)</p>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Lavoro & Relative Effort</h3>
-                <p id="kpi-kj" class="text-2xl font-bold text-purple-600 mt-2">-</p>
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Efficienza (EF) & Cad.</h3>
+                <p id="kpi-ef" class="text-2xl font-bold text-indigo-600 mt-2">-</p>
+                <p id="kpi-ef-sub" class="text-xs text-slate-500 mt-1">Output per battito | Cad: -</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Lavoro & Suffer Score</h3>
+                <p id="kpi-kj" class="text-2xl font-bold text-slate-800 mt-2">-</p>
                 <p id="kpi-effort-sub" class="text-xs text-slate-500 mt-1">Suffer Score totale: -</p>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Record & Condizioni</h3>
-                <p id="kpi-prs" class="text-2xl font-bold text-slate-800 mt-2">0 <span class="text-sm font-normal text-slate-500">PR</span></p>
-                <p id="kpi-temp-sub" class="text-xs text-slate-500 mt-1">Temp. media sensore: -</p>
             </div>
         </div>
 
         <!-- Grafici Granulari (2x2) -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Grafico 1: Trend Potenza vs Battiti -->
+            <!-- Grafico 1: Trend FTP e Picco 20m -->
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/60">
                 <div class="flex justify-between items-center mb-4">
                     <div>
-                        <h2 class="text-base font-bold text-slate-800">Trend Potenza (W) vs Frequenza Cardiaca (bpm)</h2>
-                        <p class="text-xs text-slate-500">Ultime 30 sessioni con sensori nel periodo selezionato</p>
+                        <h2 class="text-base font-bold text-slate-800">Trend Stima FTP (95% del Picco 20m)</h2>
+                        <p class="text-xs text-slate-500">Miglioramenti della soglia nel tempo</p>
                     </div>
                 </div>
                 <div class="relative h-72">
-                    <canvas id="powerHrChart"></canvas>
+                    <canvas id="ftpChart"></canvas>
                 </div>
             </div>
 
-            <!-- Grafico 2: Efficienza Aerobica nel Tempo -->
+            <!-- Grafico 2: Durability & Decoupling -->
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/60">
                 <div class="flex justify-between items-center mb-4">
                     <div>
-                        <h2 class="text-base font-bold text-slate-800">Indice di Efficienza Aerobica (EF)</h2>
-                        <p id="ef-chart-desc" class="text-xs text-slate-500">Rapporto Potenza Normalizzata / FC Media (più alto = forma migliore)</p>
+                        <h2 class="text-base font-bold text-slate-800">Aerobic Decoupling (Pa:Hr)</h2>
+                        <p id="dec-chart-desc" class="text-xs text-slate-500">Deriva cardiaca negli allenamenti lunghi (Valori < 5% indicano alta Durability)</p>
                     </div>
                 </div>
                 <div class="relative h-72">
-                    <canvas id="efficiencyChart"></canvas>
+                    <canvas id="decouplingChart"></canvas>
                 </div>
             </div>
 
             <!-- Grafico 3: Volume Mensile e Dislivello -->
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/60">
                 <div class="mb-4">
-                    <h2 class="text-base font-bold text-slate-800">Volume Mensile (km) & Dislivello (m)</h2>
-                    <p class="text-xs text-slate-500">Carico aerobico e ascesa accumulata per mese</p>
+                    <h2 class="text-base font-bold text-slate-800">Volume (km) & Dislivello (m)</h2>
+                    <p class="text-xs text-slate-500">Carico per mese/settimana</p>
                 </div>
                 <div class="relative h-72">
                     <canvas id="volumeChart"></canvas>
                 </div>
             </div>
 
-            <!-- Grafico 4: Correlazione Output vs Battiti (Scatter) -->
+            <!-- Grafico 4: Efficienza Aerobica -->
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/60">
                 <div class="mb-4">
-                    <h2 class="text-base font-bold text-slate-800">Curva Sforzo: Potenza o Velocità vs FC Media</h2>
-                    <p class="text-xs text-slate-500">Ogni punto è un allenamento: osserva la risposta cardiaca allo sforzo</p>
+                    <h2 class="text-base font-bold text-slate-800">Indice di Efficienza Aerobica (EF)</h2>
+                    <p class="text-xs text-slate-500">Rapporto Output (NP o Velocità) / FC Media</p>
                 </div>
                 <div class="relative h-72">
-                    <canvas id="scatterChart"></canvas>
+                    <canvas id="efficiencyChart"></canvas>
                 </div>
             </div>
         </div>
@@ -174,13 +196,11 @@
                         <tr>
                             <th class="px-4 py-3">Data</th>
                             <th class="px-4 py-3">Attività</th>
-                            <th class="px-4 py-3">Dist / Disl</th>
-                            <th class="px-4 py-3">Durata</th>
-                            <th class="px-4 py-3">Passo / Vel (Max)</th>
-                            <th class="px-4 py-3">Potenza (Avg/NP/Max)</th>
-                            <th class="px-4 py-3">FC (Avg/Max)</th>
-                            <th class="px-4 py-3">Cadenza</th>
-                            <th class="px-4 py-3">Effort / Temp</th>
+                            <th class="px-4 py-3">Dist / Durata</th>
+                            <th class="px-4 py-3">Passo / Vel</th>
+                            <th class="px-4 py-3">Potenza & Picco 20m</th>
+                            <th class="px-4 py-3">Cardio (Avg/Max)</th>
+                            <th class="px-4 py-3">EF / Decoup. %</th>
                         </tr>
                     </thead>
                     <tbody id="table-body" class="divide-y divide-slate-100"></tbody>
@@ -199,7 +219,6 @@
 
         async function init() {
             try {
-                // Aggiunge timestamp per evitare la cache del browser su GitHub Pages
                 const response = await fetch('workouts.csv?t=' + new Date().getTime());
                 if (!response.ok) throw new Error('File workouts.csv non trovato');
                 const csvText = await response.text();
@@ -213,27 +232,41 @@
                         
                         if (allData.length > 0) {
                             document.getElementById('last-sync-info').innerHTML = 
-                                `Archivio sincronizzato: <strong>${allData.length}</strong> attività totali (ultimo allenamento: <strong>${formatDateIT(allData[0].data)}</strong>)`;
+                                `Archivio: <strong>${allData.length}</strong> attività (ultimo agg. <strong>${formatDateIT(allData[0].data)}</strong>)`;
                         }
 
                         populateSportFilter();
                         updateDashboard();
                         
+                        // Event Listeners Base
                         document.getElementById('sportFilter').addEventListener('change', () => { showAllRows = false; updateDashboard(); });
-                        document.getElementById('periodFilter').addEventListener('change', () => { showAllRows = false; updateDashboard(); });
                         document.getElementById('searchInput').addEventListener('input', () => updateTable(getFilteredData()));
                         document.getElementById('toggleShowAll').addEventListener('click', () => {
                             showAllRows = !showAllRows;
                             document.getElementById('toggleShowAll').textContent = showAllRows ? 'Mostra ultimi 25' : 'Mostra tutti';
                             updateTable(getFilteredData());
                         });
+
+                        // Event Listeners Filtro Temporale Personalizzato
+                        document.getElementById('periodFilter').addEventListener('change', (e) => { 
+                            showAllRows = false; 
+                            const customContainer = document.getElementById('customDateContainer');
+                            if (e.target.value === 'custom') {
+                                customContainer.classList.remove('hidden');
+                            } else {
+                                customContainer.classList.add('hidden');
+                            }
+                            updateDashboard(); 
+                        });
+                        document.getElementById('startDate').addEventListener('change', () => { showAllRows = false; updateDashboard(); });
+                        document.getElementById('endDate').addEventListener('change', () => { showAllRows = false; updateDashboard(); });
                     }
                 });
             } catch (error) {
-                console.error("Errore nel caricamento:", error);
+                console.error("Errore:", error);
                 document.getElementById('table-body').innerHTML = `
-                    <tr><td colspan="9" class="px-6 py-8 text-center text-rose-600 font-medium">
-                        Impossibile caricare workouts.csv. Assicurati di aver eseguito il nuovo workflow su GitHub Actions.
+                    <tr><td colspan="7" class="px-6 py-8 text-center text-rose-600 font-medium">
+                        Impossibile caricare workouts.csv.
                     </td></tr>`;
             }
         }
@@ -258,12 +291,30 @@
 
             return allData.filter(d => {
                 if (selectedSport !== 'All' && d.sport !== selectedSport) return false;
-                if (selectedPeriod === 'all') return true;
                 
                 const actDate = new Date(d.data);
+                
+                if (selectedPeriod === 'all') return true;
+                
+                // Filtro Custom Timeframe
+                if (selectedPeriod === 'custom') {
+                    const startVal = document.getElementById('startDate').value;
+                    const endVal = document.getElementById('endDate').value;
+                    if (startVal) {
+                        const s = new Date(startVal); s.setHours(0,0,0,0);
+                        if (actDate < s) return false;
+                    }
+                    if (endVal) {
+                        const e = new Date(endVal); e.setHours(23,59,59,999);
+                        if (actDate > e) return false;
+                    }
+                    return true;
+                }
+
                 if (selectedPeriod === 'ytd') {
                     return actDate.getFullYear() === now.getFullYear();
                 }
+
                 const days = parseInt(selectedPeriod, 10);
                 const cutoff = new Date();
                 cutoff.setDate(now.getDate() - days);
@@ -278,10 +329,7 @@
             updateTable(filtered);
         }
 
-        function avg(arr) {
-            if (!arr.length) return null;
-            return arr.reduce((a, b) => a + b, 0) / arr.length;
-        }
+        function avg(arr) { return !arr.length ? null : arr.reduce((a, b) => a + b, 0) / arr.length; }
 
         function formatPace(decimalMin) {
             if (!decimalMin || decimalMin <= 0) return '-';
@@ -294,6 +342,16 @@
             if (!isoDate) return '-';
             const parts = isoDate.split('-');
             return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : isoDate;
+        }
+
+        function computeEF(d) {
+            const hr = parseFloat(d.fc_media);
+            if (!hr || hr <= 0) return null;
+            const watts = parseFloat(d.potenza_norm_w) || parseFloat(d.potenza_media_w);
+            if (watts && watts > 0) return watts / hr;
+            const speedKmh = parseFloat(d.vel_media_kmh);
+            if (speedKmh && speedKmh > 0) return ((speedKmh * 1000) / 60) / hr;
+            return null;
         }
 
         function updateKPIs(data) {
@@ -320,18 +378,27 @@
             document.getElementById('kpi-duration').innerHTML = `${(totalMins / 60).toLocaleString('it-IT', {maximumFractionDigits: 1})} <span class="text-base font-normal text-slate-500">ore</span>`;
             document.getElementById('kpi-elevation').textContent = `Dislivello: ${totalElev.toLocaleString('it-IT', {maximumFractionDigits: 0})} m`;
 
-            // Potenza
+            // Potenza base
             const watts = data.map(d => parseFloat(d.potenza_media_w)).filter(v => v > 0);
             const npWatts = data.map(d => parseFloat(d.potenza_norm_w)).filter(v => v > 0);
-            const maxWatts = data.map(d => parseFloat(d.potenza_max_w)).filter(v => v > 0);
             if (watts.length) {
                 document.getElementById('kpi-power').innerHTML = `${Math.round(avg(watts))} <span class="text-base font-normal text-slate-500">W</span>`;
-                const npTxt = npWatts.length ? `${Math.round(avg(npWatts))} W` : '-';
-                const maxTxt = maxWatts.length ? `${Math.max(...maxWatts)} W` : '-';
-                document.getElementById('kpi-power-sub').textContent = `NP media: ${npTxt} | Picco: ${maxTxt}`;
+                document.getElementById('kpi-power-sub').textContent = `NP media: ${npWatts.length ? Math.round(avg(npWatts)) + ' W' : '-'}`;
             } else {
                 document.getElementById('kpi-power').innerHTML = `- <span class="text-base font-normal text-slate-500">W</span>`;
                 document.getElementById('kpi-power-sub').textContent = `Nessun sensore potenza`;
+            }
+
+            // Stima FTP (Novità!)
+            const peaks = data.map(d => parseFloat(d.peak_20m_w)).filter(v => v > 0);
+            if (peaks.length) {
+                const maxPeak = Math.max(...peaks);
+                const estFTP = Math.round(maxPeak * 0.95);
+                document.getElementById('kpi-ftp').innerHTML = `${estFTP} <span class="text-base font-normal text-slate-500">W</span>`;
+                document.getElementById('kpi-ftp-sub').textContent = `Picco 20m max periodo: ${maxPeak} W`;
+            } else {
+                document.getElementById('kpi-ftp').innerHTML = `- <span class="text-base font-normal text-slate-500">W</span>`;
+                document.getElementById('kpi-ftp-sub').textContent = `Richiede stream 20+ min`;
             }
 
             // Frequenza Cardiaca
@@ -345,152 +412,123 @@
                 document.getElementById('kpi-hr-sub').textContent = `Nessun dato cardio`;
             }
 
-            // Cadenza
-            const cads = data.map(d => parseFloat(d.cadenza_media)).filter(v => v > 0);
-            if (cads.length) {
-                const unit = isRunOnly ? 'spm' : (selectedSport === 'All' ? 'rpm/spm' : 'rpm');
-                document.getElementById('kpi-cadence').innerHTML = `${Math.round(avg(cads))} <span class="text-sm font-normal text-slate-500">${unit}</span>`;
+            // Aerobic Decoupling (Novità!)
+            const decs = data.map(d => parseFloat(d.decoupling_pct)).filter(v => !isNaN(v));
+            if (decs.length) {
+                const avgDec = avg(decs);
+                const colorClass = avgDec < 5 ? 'text-purple-600' : 'text-amber-600';
+                document.getElementById('kpi-decoupling').innerHTML = `<span class="${colorClass}">${avgDec.toFixed(1)}</span> <span class="text-base font-normal text-slate-500">%</span>`;
             } else {
-                document.getElementById('kpi-cadence').textContent = '-';
+                document.getElementById('kpi-decoupling').innerHTML = `- <span class="text-base font-normal text-slate-500">%</span>`;
             }
 
-            // Efficienza Aerobica (EF)
+            // EF & Cadenza
             const efValues = data.map(d => computeEF(d)).filter(v => v !== null);
+            const cads = data.map(d => parseFloat(d.cadenza_media)).filter(v => v > 0);
+            let cadText = cads.length ? `${Math.round(avg(cads))} ${isRunOnly ? 'spm' : 'rpm'}` : '-';
+            
             if (efValues.length) {
-                const hasPowerEF = data.some(d => parseFloat(d.potenza_norm_w || d.potenza_media_w) > 0 && parseFloat(d.fc_media) > 0);
-                document.getElementById('kpi-ef').innerHTML = `${avg(efValues).toFixed(2)} <span class="text-sm font-normal text-slate-500">${hasPowerEF ? 'W/bpm' : 'm/bpm'}</span>`;
-                document.getElementById('kpi-ef-sub').textContent = hasPowerEF ? 'Potenza Norm. / FC Media' : 'Metri al minuto / FC Media';
+                document.getElementById('kpi-ef').textContent = avg(efValues).toFixed(2);
+                document.getElementById('kpi-ef-sub').textContent = `W/bpm o m/bpm | Cad: ${cadText}`;
             } else {
                 document.getElementById('kpi-ef').textContent = '-';
-                document.getElementById('kpi-ef-sub').textContent = 'Richiede cardio + potenza/passo';
+                document.getElementById('kpi-ef-sub').textContent = `Cadenza: ${cadText}`;
             }
 
-            // Kilojoules & Suffer Score
+            // Lavoro
             const totalKj = data.reduce((s, d) => s + (parseFloat(d.lavoro_kj) || 0), 0);
             const totalEffort = data.reduce((s, d) => s + (parseFloat(d.suffer_score) || 0), 0);
             document.getElementById('kpi-kj').innerHTML = totalKj > 0 ? `${Math.round(totalKj).toLocaleString('it-IT')} <span class="text-sm font-normal text-slate-500">kJ</span>` : `${Math.round(totalEffort)} <span class="text-sm font-normal text-slate-500">pts</span>`;
-            document.getElementById('kpi-effort-sub').textContent = `Relative Effort cumulato: ${Math.round(totalEffort)}`;
-
-            // PR & Temperatura
-            const totalPR = data.reduce((s, d) => s + (parseInt(d.pr_count, 10) || 0), 0);
-            const temps = data.map(d => parseFloat(d.temp_media_c)).filter(v => !isNaN(v));
-            document.getElementById('kpi-prs').innerHTML = `${totalPR} <span class="text-sm font-normal text-slate-500">PR Strava</span>`;
-            document.getElementById('kpi-temp-sub').textContent = temps.length ? `Temp. media sensore: ${avg(temps).toFixed(1)} °C` : `Temp. sensore non disp.`;
-        }
-
-        function computeEF(d) {
-            const hr = parseFloat(d.fc_media);
-            if (!hr || hr <= 0) return null;
-            const watts = parseFloat(d.potenza_norm_w) || parseFloat(d.potenza_media_w);
-            if (watts && watts > 0) {
-                return watts / hr; // Watt per battito
-            }
-            const speedKmh = parseFloat(d.vel_media_kmh);
-            if (speedKmh && speedKmh > 0) {
-                const metersPerMin = (speedKmh * 1000) / 60;
-                return metersPerMin / hr; // Metri al minuto per battito
-            }
-            return null;
+            document.getElementById('kpi-effort-sub').textContent = `Suffer Score totale: ${Math.round(totalEffort)}`;
         }
 
         function destroyChart(id) {
-            if (charts[id]) {
-                charts[id].destroy();
-                delete charts[id];
-            }
+            if (charts[id]) { charts[id].destroy(); delete charts[id]; }
         }
 
         function updateCharts(data) {
-            renderPowerHrChart(data);
-            renderEfficiencyChart(data);
+            renderFTPChart(data);
+            renderDecouplingChart(data);
             renderVolumeChart(data);
-            renderScatterChart(data);
+            renderEfficiencyChart(data);
         }
 
-        // 1. Trend Potenza vs Battiti (ultime 30 sessioni con dati)
-        function renderPowerHrChart(data) {
-            destroyChart('powerHr');
-            const ctx = document.getElementById('powerHrChart').getContext('2d');
+        // 1. Chart: FTP & Peak 20m
+        function renderFTPChart(data) {
+            destroyChart('ftp');
+            const ctx = document.getElementById('ftpChart').getContext('2d');
             const valid = data
-                .filter(d => (parseFloat(d.potenza_media_w) > 0 || parseFloat(d.fc_media) > 0))
-                .slice(0, 30)
+                .filter(d => parseFloat(d.peak_20m_w) > 0)
+                .slice(0, 40)
                 .reverse();
 
-            charts['powerHr'] = new Chart(ctx, {
+            charts['ftp'] = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: valid.map(d => formatDateIT(d.data).slice(0, 5)),
                     datasets: [
                         {
-                            label: 'Potenza Norm. (W)',
-                            data: valid.map(d => parseFloat(d.potenza_norm_w) || parseFloat(d.potenza_media_w) || null),
-                            borderColor: '#f59e0b',
-                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                            yAxisID: 'y',
-                            tension: 0.3,
-                            spanGaps: true
+                            label: 'Picco 20 min (W)',
+                            data: valid.map(d => parseFloat(d.peak_20m_w)),
+                            borderColor: '#3b82f6',
+                            backgroundColor: '#3b82f6',
+                            borderDash: [5, 5],
+                            tension: 0.3
                         },
                         {
-                            label: 'FC Media (bpm)',
-                            data: valid.map(d => parseFloat(d.fc_media) || null),
-                            borderColor: '#e11d48',
-                            backgroundColor: 'rgba(225, 29, 72, 0.1)',
-                            yAxisID: 'y1',
-                            tension: 0.3,
-                            spanGaps: true
+                            label: 'Stima FTP (W)',
+                            data: valid.map(d => Math.round(parseFloat(d.peak_20m_w) * 0.95)),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.3
                         }
                     ]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    scales: {
-                        y: { type: 'linear', position: 'left', title: { display: true, text: 'Watt' }, grid: { color: '#f1f5f9' } },
-                        y1: { type: 'linear', position: 'right', title: { display: true, text: 'BPM' }, grid: { drawOnChartArea: false } },
-                        x: { grid: { display: false } }
-                    }
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
                 }
             });
         }
 
-        // 2. Efficienza Aerobica nel tempo
-        function renderEfficiencyChart(data) {
-            destroyChart('ef');
-            const ctx = document.getElementById('efficiencyChart').getContext('2d');
+        // 2. Chart: Aerobic Decoupling
+        function renderDecouplingChart(data) {
+            destroyChart('dec');
+            const ctx = document.getElementById('decouplingChart').getContext('2d');
+            
+            // Prendi solo attività lunghe con decoupling valido
             const valid = data
-                .map(d => ({ date: d.data, ef: computeEF(d), name: d.nome }))
-                .filter(item => item.ef !== null)
-                .slice(0, 40)
+                .filter(d => d.decoupling_pct !== "" && parseFloat(d.durata_min) >= 40)
+                .slice(0, 30)
                 .reverse();
 
-            charts['ef'] = new Chart(ctx, {
-                type: 'line',
+            charts['dec'] = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: valid.map(d => formatDateIT(d.date).slice(0, 5)),
+                    labels: valid.map(d => formatDateIT(d.data).slice(0, 5)),
                     datasets: [{
-                        label: 'Efficiency Factor (EF)',
-                        data: valid.map(d => d.ef.toFixed(2)),
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                        fill: true,
-                        tension: 0.35,
-                        pointRadius: 3
+                        label: 'Decoupling (%)',
+                        data: valid.map(d => parseFloat(d.decoupling_pct)),
+                        backgroundColor: valid.map(d => parseFloat(d.decoupling_pct) <= 5 ? '#8b5cf6' : '#f59e0b'),
+                        borderRadius: 4
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: '#f1f5f9' } },
-                        x: { grid: { display: false } }
-                    }
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        annotation: {
+                            annotations: {
+                                line1: { type: 'line', yMin: 5, yMax: 5, borderColor: '#ef4444', borderWidth: 2, borderDash: [2, 2] }
+                            }
+                        }
+                    },
+                    scales: { y: { grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
                 }
             });
         }
 
-        // 3. Volume Mensile + Dislivello
+        // 3. Volume
         function renderVolumeChart(data) {
             destroyChart('volume');
             const ctx = document.getElementById('volumeChart').getContext('2d');
@@ -513,77 +551,30 @@
                 data: {
                     labels,
                     datasets: [
-                        {
-                            label: 'Distanza (km)',
-                            data: keys.map(k => monthly[k].km.toFixed(1)),
-                            backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                            borderRadius: 4,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Dislivello (m)',
-                            data: keys.map(k => Math.round(monthly[k].elev)),
-                            type: 'line',
-                            borderColor: '#8b5cf6',
-                            backgroundColor: '#8b5cf6',
-                            tension: 0.3,
-                            yAxisID: 'y1'
-                        }
+                        { label: 'Distanza (km)', data: keys.map(k => monthly[k].km.toFixed(1)), backgroundColor: 'rgba(59, 130, 246, 0.8)', yAxisID: 'y' },
+                        { label: 'Dislivello (m)', data: keys.map(k => Math.round(monthly[k].elev)), type: 'line', borderColor: '#f97316', backgroundColor: '#f97316', tension: 0.3, yAxisID: 'y1' }
                     ]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { type: 'linear', position: 'left', beginAtZero: true, grid: { color: '#f1f5f9' } },
-                        y1: { type: 'linear', position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } },
-                        x: { grid: { display: false } }
-                    }
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { position: 'left', grid: { color: '#f1f5f9' } }, y1: { position: 'right', grid: { drawOnChartArea: false } }, x: { grid: { display: false } } }
                 }
             });
         }
 
-        // 4. Scatter: Output (Watt o km/h) vs FC Media
-        function renderScatterChart(data) {
-            destroyChart('scatter');
-            const ctx = document.getElementById('scatterChart').getContext('2d');
-            const hasWatts = data.some(d => parseFloat(d.potenza_media_w) > 0 && parseFloat(d.fc_media) > 0);
-            
-            const points = data
-                .filter(d => parseFloat(d.fc_media) > 0 && (hasWatts ? parseFloat(d.potenza_media_w) > 0 : parseFloat(d.vel_media_kmh) > 0))
-                .slice(0, 100)
-                .map(d => ({
-                    x: hasWatts ? parseFloat(d.potenza_media_w) : parseFloat(d.vel_media_kmh),
-                    y: parseFloat(d.fc_media),
-                    label: `${formatDateIT(d.data)} - ${d.nome}`
-                }));
+        // 4. Efficienza
+        function renderEfficiencyChart(data) {
+            destroyChart('ef');
+            const ctx = document.getElementById('efficiencyChart').getContext('2d');
+            const valid = data.map(d => ({ date: d.data, ef: computeEF(d) })).filter(item => item.ef !== null).slice(0, 40).reverse();
 
-            charts['scatter'] = new Chart(ctx, {
-                type: 'scatter',
+            charts['ef'] = new Chart(ctx, {
+                type: 'line',
                 data: {
-                    datasets: [{
-                        label: hasWatts ? 'Watt Medi vs BPM' : 'Velocità (km/h) vs BPM',
-                        data: points,
-                        backgroundColor: 'rgba(249, 115, 22, 0.65)',
-                        pointRadius: 5,
-                        pointHoverRadius: 7
-                    }]
+                    labels: valid.map(d => formatDateIT(d.date).slice(0, 5)),
+                    datasets: [{ label: 'EF (W/bpm o vel/bpm)', data: valid.map(d => d.ef.toFixed(2)), borderColor: '#14b8a6', backgroundColor: 'rgba(20, 184, 166, 0.15)', fill: true, tension: 0.35, pointRadius: 3 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: ctx => `${ctx.raw.label}: ${ctx.raw.x} ${hasWatts ? 'W' : 'km/h'} @ ${ctx.raw.y} bpm`
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { title: { display: true, text: hasWatts ? 'Potenza Media (W)' : 'Velocità Media (km/h)' }, grid: { color: '#f1f5f9' } },
-                        y: { title: { display: true, text: 'FC Media (bpm)' }, grid: { color: '#f1f5f9' } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
             });
         }
 
@@ -603,60 +594,40 @@
 
                 const isRun = RUN_SPORTS.has(row.sport);
                 let speedText = '-';
-                if (isRun && parseFloat(row.passo_min_km) > 0) {
-                    speedText = `<strong>${formatPace(parseFloat(row.passo_min_km))}</strong> /km`;
-                } else if (parseFloat(row.vel_media_kmh) > 0) {
-                    speedText = `<strong>${row.vel_media_kmh}</strong> km/h`;
-                    if (parseFloat(row.vel_max_kmh) > 0) speedText += ` <span class="text-xs text-slate-400">(max ${row.vel_max_kmh})</span>`;
-                }
+                if (isRun && parseFloat(row.passo_min_km) > 0) speedText = `<strong>${formatPace(parseFloat(row.passo_min_km))}</strong> /km`;
+                else if (parseFloat(row.vel_media_kmh) > 0) speedText = `<strong>${row.vel_media_kmh}</strong> km/h`;
 
                 let powerText = '-';
                 if (parseFloat(row.potenza_media_w) > 0) {
-                    powerText = `<strong>${row.potenza_media_w}W</strong>`;
-                    if (parseFloat(row.potenza_norm_w) > 0) powerText += ` / NP ${row.potenza_norm_w}W`;
-                    if (parseFloat(row.potenza_max_w) > 0) powerText += ` <span class="text-xs text-slate-400">(max ${row.potenza_max_w})</span>`;
+                    powerText = `<strong>${row.potenza_media_w}W</strong> / NP ${row.potenza_norm_w}W`;
+                    if (row.peak_20m_w) {
+                        const ftp = Math.round(parseFloat(row.peak_20m_w) * 0.95);
+                        powerText += `<br><span class="text-xs text-emerald-600 font-medium">Picco 20m: ${row.peak_20m_w}W (FTP ~${ftp}W)</span>`;
+                    }
                 }
 
                 let hrText = '-';
-                if (parseFloat(row.fc_media) > 0) {
-                    hrText = `<strong>${row.fc_media}</strong>`;
-                    if (parseFloat(row.fc_max) > 0) hrText += ` <span class="text-xs text-slate-400">/ ${row.fc_max}</span>`;
-                    hrText += ' bpm';
+                if (parseFloat(row.fc_media) > 0) hrText = `<strong>${row.fc_media}</strong> / ${row.fc_max} bpm`;
+
+                let efText = '-';
+                const ef = computeEF(row);
+                if (ef) {
+                    efText = `<strong>EF: ${ef.toFixed(2)}</strong>`;
+                    if (row.decoupling_pct) {
+                        const dec = parseFloat(row.decoupling_pct);
+                        const decColor = dec <= 5 ? 'text-purple-600' : 'text-amber-600';
+                        efText += `<br><span class="text-xs ${decColor} font-medium">Decoup: ${dec.toFixed(1)}%</span>`;
+                    }
                 }
 
-                const cadUnit = isRun ? 'spm' : 'rpm';
-                const cadText = parseFloat(row.cadenza_media) > 0 ? `${row.cadenza_media} ${cadUnit}` : '-';
-
-                const badges = [];
-                if (row.indoor === '1') badges.push('<span class="bg-slate-200 text-slate-700 text-[10px] font-semibold px-1.5 py-0.5 rounded">Indoor</span>');
-                if (parseInt(row.pr_count, 10) > 0) badges.push(`<span class="bg-amber-100 text-amber-800 text-[10px] font-semibold px-1.5 py-0.5 rounded">🏅 ${row.pr_count} PR</span>`);
-
-                const effortParts = [];
-                if (parseFloat(row.suffer_score) > 0) effortParts.push(`RE ${row.suffer_score}`);
-                if (row.temp_media_c !== '' && row.temp_media_c !== undefined) effortParts.push(`${row.temp_media_c}°C`);
-
                 tr.innerHTML = `
-                    <td class="px-4 py-3 whitespace-nowrap">
-                        <div class="font-medium text-slate-900">${formatDateIT(row.data)}</div>
-                        <div class="text-xs text-slate-400">${row.ora || ''}</div>
-                    </td>
-                    <td class="px-4 py-3">
-                        <div class="font-medium text-slate-800">${row.nome || 'Allenamento'}</div>
-                        <div class="flex items-center gap-1.5 mt-0.5">
-                            <span class="bg-blue-50 text-blue-700 text-[11px] font-medium px-2 py-0.5 rounded">${row.sport}</span>
-                            ${badges.join('')}
-                        </div>
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap">
-                        <div class="font-semibold text-slate-900">${parseFloat(row.distanza_km || 0).toFixed(2)} km</div>
-                        <div class="text-xs text-slate-400">+${Math.round(parseFloat(row.dislivello_m || 0))} m</div>
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap">${parseFloat(row.durata_min || 0).toFixed(0)} min</td>
+                    <td class="px-4 py-3 whitespace-nowrap"><div class="font-medium text-slate-900">${formatDateIT(row.data)}</div><div class="text-xs text-slate-400">${row.ora || ''}</div></td>
+                    <td class="px-4 py-3"><div class="font-medium text-slate-800">${row.nome || 'Allenamento'}</div><div class="mt-0.5"><span class="bg-blue-50 text-blue-700 text-[11px] font-medium px-2 py-0.5 rounded">${row.sport}</span></div></td>
+                    <td class="px-4 py-3 whitespace-nowrap"><div class="font-semibold text-slate-900">${parseFloat(row.distanza_km || 0).toFixed(2)} km</div><div class="text-xs text-slate-400">${parseFloat(row.durata_min || 0).toFixed(0)} min (+${Math.round(parseFloat(row.dislivello_m || 0))} m)</div></td>
                     <td class="px-4 py-3 whitespace-nowrap">${speedText}</td>
                     <td class="px-4 py-3 whitespace-nowrap">${powerText}</td>
                     <td class="px-4 py-3 whitespace-nowrap">${hrText}</td>
-                    <td class="px-4 py-3 whitespace-nowrap">${cadText}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-500">${effortParts.length ? effortParts.join(' • ') : '-'}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${efText}</td>
                 `;
                 tbody.appendChild(tr);
             });
