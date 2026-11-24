@@ -10,25 +10,25 @@
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        
+
         <!-- Header & Filtri -->
         <header class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60">
             <div>
                 <div class="flex items-center gap-2">
                     <span class="inline-block w-3 h-3 rounded-full bg-orange-500 animate-pulse"></span>
-                    <span class="text-xs font-semibold uppercase tracking-wider text-orange-600">Advanced Telemetry</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-orange-600">Advanced Telemetry • Coach Edition</span>
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">Dashboard Analisi Allenamenti</h1>
                 <p id="last-sync-info" class="text-slate-500 text-sm mt-1">Caricamento dati da <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">workouts.csv</code>...</p>
             </div>
-            
+
             <div class="flex flex-wrap gap-3 items-end">
                 <div>
                     <label for="periodFilter" class="block text-xs font-semibold text-slate-500 uppercase mb-1">Periodo</label>
                     <select id="periodFilter" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block w-44 p-2.5 transition-colors">
                         <option value="30">Ultimi 30 giorni</option>
-                        <option value="90">Ultimi 90 giorni</option>
-                        <option value="365" selected>Ultimi 12 mesi</option>
+                        <option value="90" selected>Ultimi 90 giorni</option>
+                        <option value="365">Ultimi 12 mesi</option>
                         <option value="ytd">Anno corrente (YTD)</option>
                         <option value="all">Tutto lo storico</option>
                         <option value="custom" class="font-bold text-orange-600">Personalizzato...</option>
@@ -63,7 +63,7 @@
                     <p class="text-xs text-slate-500">I tuoi massimali storici estratti secondo per secondo nel periodo selezionato</p>
                 </div>
                 <div class="flex items-center gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200">
-                    <label for="weightInput" class="text-sm font-semibold text-slate-700">Il tuo peso (kg):</label>
+                    <label for="weightInput" class="text-sm font-semibold text-slate-700">Peso (kg):</label>
                     <input type="number" id="weightInput" value="78" min="40" max="150" step="0.5" class="bg-white border border-slate-300 text-slate-900 text-sm font-bold rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-20 p-1.5 text-center">
                 </div>
             </div>
@@ -96,17 +96,17 @@
 
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
                 <div class="flex justify-between items-start">
-                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Potenza (NP / AVG)</h3>
-                    <span class="text-xs bg-amber-50 text-amber-700 font-medium px-2 py-0.5 rounded-full">Watt</span>
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Carico Reale (TSS)</h3>
+                    <span class="text-xs bg-orange-50 text-orange-700 font-medium px-2 py-0.5 rounded-full" id="kpi-if-badge">IF -</span>
                 </div>
-                <p id="kpi-power" class="text-2xl sm:text-3xl font-bold text-amber-600 mt-2">- <span class="text-base font-normal text-slate-500">W</span></p>
-                <p id="kpi-power-sub" class="text-xs text-slate-500 mt-1">NP media: - | Max: -</p>
+                <p id="kpi-tss" class="text-2xl sm:text-3xl font-bold text-orange-600 mt-2">- <span class="text-base font-normal text-slate-500">TSS</span></p>
+                <p id="kpi-kj-sub" class="text-xs text-slate-500 mt-1">Lavoro: - kJ | NP: - W</p>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
                 <div class="flex justify-between items-start">
                     <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Stima FTP (95% 20m)</h3>
-                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded-full">New</span>
+                    <span class="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded-full">20m</span>
                 </div>
                 <p id="kpi-ftp" class="text-2xl sm:text-3xl font-bold text-emerald-600 mt-2">- <span class="text-base font-normal text-slate-500">W</span></p>
                 <p id="kpi-ftp-sub" class="text-xs text-slate-500 mt-1">Picco 20m max periodo: -</p>
@@ -117,59 +117,79 @@
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
                 <div class="flex justify-between items-start">
-                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Frequenza Cardiaca</h3>
-                    <span class="text-xs bg-rose-50 text-rose-600 font-medium px-2 py-0.5 rounded-full">BPM</span>
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Stimolo VO2Max Cardio</h3>
+                    <span class="text-xs bg-rose-50 text-rose-600 font-medium px-2 py-0.5 rounded-full">&ge;90% FCmax</span>
                 </div>
-                <p id="kpi-hr" class="text-2xl sm:text-3xl font-bold text-rose-600 mt-2">- <span class="text-base font-normal text-slate-500">bpm</span></p>
-                <p id="kpi-hr-sub" class="text-xs text-slate-500 mt-1">Picco max registrato: -</p>
+                <p id="kpi-hr-z5" class="text-2xl sm:text-3xl font-bold text-rose-600 mt-2">- <span class="text-base font-normal text-slate-500">min</span></p>
+                <p id="kpi-hr-sub" class="text-xs text-slate-500 mt-1">FC media: - | Max: -</p>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
                 <div class="flex justify-between items-start">
-                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Aerobic Decoupling</h3>
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Decoupling Pulito</h3>
                     <span class="text-xs bg-purple-50 text-purple-700 font-medium px-2 py-0.5 rounded-full">Durability</span>
                 </div>
                 <p id="kpi-decoupling" class="text-2xl font-bold text-purple-600 mt-2">- <span class="text-base font-normal text-slate-500">%</span></p>
-                <p id="kpi-decoupling-sub" class="text-xs text-slate-500 mt-1">Deriva tra 1° e 2° metà (ideale < 5%)</p>
+                <p id="kpi-decoupling-sub" class="text-xs text-slate-500 mt-1">Esclusi 10' WU &amp; dropout (ideale &lt; 5%)</p>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Efficienza (EF) & Cad.</h3>
-                <p id="kpi-ef" class="text-2xl font-bold text-indigo-600 mt-2">-</p>
-                <p id="kpi-ef-sub" class="text-xs text-slate-500 mt-1">Output per battito | Cad: -</p>
+                <div class="flex justify-between items-start">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cadenza Lavoro vs Easy</h3>
+                    <span class="text-xs bg-indigo-50 text-indigo-700 font-medium px-2 py-0.5 rounded-full">RPM</span>
+                </div>
+                <p id="kpi-cad-work" class="text-2xl font-bold text-indigo-600 mt-2">- <span class="text-base font-normal text-slate-500">rpm</span></p>
+                <p id="kpi-cad-sub" class="text-xs text-slate-500 mt-1">Easy: - | EF medio: -</p>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200/60">
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Lavoro & Suffer Score</h3>
-                <p id="kpi-kj" class="text-2xl font-bold text-slate-800 mt-2">-</p>
-                <p id="kpi-effort-sub" class="text-xs text-slate-500 mt-1">Suffer Score totale: -</p>
+                <div class="flex justify-between items-start">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Potenza Media / Max</h3>
+                    <span class="text-xs bg-amber-50 text-amber-700 font-medium px-2 py-0.5 rounded-full">Watt</span>
+                </div>
+                <p id="kpi-power" class="text-2xl font-bold text-amber-600 mt-2">- <span class="text-base font-normal text-slate-500">W</span></p>
+                <p id="kpi-power-sub" class="text-xs text-slate-500 mt-1">NP 30s media: - | Max: -</p>
             </div>
         </div>
 
-        <!-- Grafici Granulari -->
+        <!-- Nuovi Grafici Coach: Carico TSS & Tempo in Zona -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/60">
+                <div class="mb-4">
+                    <h2 class="text-base font-bold text-slate-800">Carico Settimanale (TSS) &amp; Tempo Z5 Cardio</h2>
+                    <p class="text-xs text-slate-500">Progressione TSS settimanale (barre) e minuti netti &ge;90% FCmax (linea rossa)</p>
+                </div>
+                <div class="relative h-72"><canvas id="weeklyLoadChart"></canvas></div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/60">
+                <div class="mb-4">
+                    <h2 class="text-base font-bold text-slate-800">Distribuzione Tempo in Zona — Potenza (Z1–Z6)</h2>
+                    <p class="text-xs text-slate-500" id="tiz-summary-sub">Verifica polarizzazione del periodo selezionato (FTP 280 W)</p>
+                </div>
+                <div class="relative h-72"><canvas id="tizPowerChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Grafici Granulari Esistenti -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/60">
-                <div class="flex justify-between items-center mb-4">
-                    <div>
-                        <h2 class="text-base font-bold text-slate-800">Trend Stima FTP (95% del Picco 20m)</h2>
-                    </div>
+                <div class="mb-4">
+                    <h2 class="text-base font-bold text-slate-800">Trend Stima FTP (95% del Picco 20m)</h2>
                 </div>
                 <div class="relative h-72"><canvas id="ftpChart"></canvas></div>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/60">
-                <div class="flex justify-between items-center mb-4">
-                    <div>
-                        <h2 class="text-base font-bold text-slate-800">Aerobic Decoupling (Pa:Hr)</h2>
-                    </div>
+                <div class="mb-4">
+                    <h2 class="text-base font-bold text-slate-800">Aerobic Decoupling (Pulito / Pa:Hr)</h2>
                 </div>
                 <div class="relative h-72"><canvas id="decouplingChart"></canvas></div>
             </div>
-            
-            <!-- Aggiunti i grafici di Volume e Efficienza (mancavano nello screenshot) -->
+
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200/60">
                 <div class="mb-4">
-                    <h2 class="text-base font-bold text-slate-800">Volume (km) & Dislivello (m)</h2>
+                    <h2 class="text-base font-bold text-slate-800">Volume Mensile (km) &amp; Dislivello (m)</h2>
                 </div>
                 <div class="relative h-72"><canvas id="volumeChart"></canvas></div>
             </div>
@@ -182,7 +202,7 @@
             </div>
         </div>
 
-        <!-- Tabella Granulare -->
+        <!-- Tabella Granulare Potenziata -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <div>
@@ -201,10 +221,11 @@
                             <th class="px-4 py-3">Data</th>
                             <th class="px-4 py-3">Attività</th>
                             <th class="px-4 py-3">Dist / Durata</th>
-                            <th class="px-4 py-3">Passo / Vel</th>
-                            <th class="px-4 py-3">Potenza & Picco 20m</th>
-                            <th class="px-4 py-3">Cardio (Avg/Max)</th>
-                            <th class="px-4 py-3">EF / Decoup. %</th>
+                            <th class="px-4 py-3">Potenza (Avg / NP)</th>
+                            <th class="px-4 py-3">TSS / IF</th>
+                            <th class="px-4 py-3">Cardio &amp; Z5</th>
+                            <th class="px-4 py-3">Cad. Work / Fade</th>
+                            <th class="px-4 py-3">Decoupling</th>
                         </tr>
                     </thead>
                     <tbody id="table-body" class="divide-y divide-slate-100"></tbody>
@@ -218,7 +239,7 @@
         let allData = [];
         let showAllRows = false;
         let charts = {};
-        
+
         const POWER_WINDOWS = [
             { id: 'peak_5s_w', label: '5s', type: 'anaerobic' },
             { id: 'peak_15s_w', label: '15s', type: 'anaerobic' },
@@ -242,22 +263,23 @@
                 const response = await fetch('workouts.csv?t=' + new Date().getTime());
                 if (!response.ok) throw new Error('File workouts.csv non trovato');
                 const csvText = await response.text();
-                
+
                 Papa.parse(csvText, {
                     header: true,
                     skipEmptyLines: true,
                     complete: function(results) {
                         allData = results.data.filter(d => d.data);
-                        allData.sort((a, b) => new Date(b.data) - new Date(a.data));
-                        
+                        allData.sort((a, b) => (b.data + (b.ora || '')).localeCompare(a.data + (a.ora || '')));
+
                         if (allData.length > 0) {
-                            document.getElementById('last-sync-info').innerHTML = 
-                                `Archivio: <strong>${allData.length}</strong> attività (ultimo agg. <strong>${formatDateIT(allData[0].data)}</strong>)`;
+                            const enrichedCount = allData.filter(d => d.tss && d.tss !== '').length;
+                            document.getElementById('last-sync-info').innerHTML =
+                                `Archivio: <strong>${allData.length}</strong> attività (${enrichedCount} con telemetria avanzata) • ultimo agg. <strong>${formatDateIT(allData[0].data)}</strong>`;
                         }
 
                         populateSportFilter();
                         updateDashboard();
-                        
+
                         document.getElementById('sportFilter').addEventListener('change', () => { showAllRows = false; updateDashboard(); });
                         document.getElementById('searchInput').addEventListener('input', () => updateTable(getFilteredData()));
                         document.getElementById('toggleShowAll').addEventListener('click', () => {
@@ -266,20 +288,17 @@
                             updateTable(getFilteredData());
                         });
 
-                        document.getElementById('periodFilter').addEventListener('change', (e) => { 
-                            showAllRows = false; 
+                        document.getElementById('periodFilter').addEventListener('change', (e) => {
+                            showAllRows = false;
                             const customContainer = document.getElementById('customDateContainer');
                             if (e.target.value === 'custom') customContainer.classList.remove('hidden');
                             else customContainer.classList.add('hidden');
-                            updateDashboard(); 
+                            updateDashboard();
                         });
-                        
+
                         document.getElementById('startDate').addEventListener('change', () => { showAllRows = false; updateDashboard(); });
                         document.getElementById('endDate').addEventListener('change', () => { showAllRows = false; updateDashboard(); });
-                        
-                        document.getElementById('weightInput').addEventListener('input', () => {
-                            updatePowerCurve(getFilteredData());
-                        });
+                        document.getElementById('weightInput').addEventListener('input', () => updatePowerCurve(getFilteredData()));
                     }
                 });
             } catch (error) {
@@ -309,16 +328,16 @@
                 if (selectedSport !== 'All' && d.sport !== selectedSport) return false;
                 const actDate = new Date(d.data);
                 if (selectedPeriod === 'all') return true;
-                
+
                 if (selectedPeriod === 'custom') {
                     const startVal = document.getElementById('startDate').value;
                     const endVal = document.getElementById('endDate').value;
                     if (startVal) {
-                        const s = new Date(startVal); s.setHours(0,0,0,0);
+                        const s = new Date(startVal); s.setHours(0, 0, 0, 0);
                         if (actDate < s) return false;
                     }
                     if (endVal) {
-                        const e = new Date(endVal); e.setHours(23,59,59,999);
+                        const e = new Date(endVal); e.setHours(23, 59, 59, 999);
                         if (actDate > e) return false;
                     }
                     return true;
@@ -344,7 +363,22 @@
         }
 
         function avg(arr) { return !arr.length ? null : arr.reduce((a, b) => a + b, 0) / arr.length; }
-        
+
+        function num(val) {
+            const n = parseFloat(val);
+            return isNaN(n) ? null : n;
+        }
+
+        function getBestNP(d) {
+            return num(d.np_30s_w) || num(d.potenza_norm_w);
+        }
+
+        function getBestDecoupling(d) {
+            const clean = num(d.decoupling_clean_pct);
+            if (clean !== null) return clean;
+            return num(d.decoupling_pct);
+        }
+
         function formatPace(decimalMin) {
             if (!decimalMin || decimalMin <= 0) return '-';
             const mins = Math.floor(decimalMin);
@@ -357,46 +391,49 @@
             const parts = isoDate.split('-');
             return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : isoDate;
         }
-        
+
+        function getISOWeekKey(isoDate) {
+            const d = new Date(isoDate + 'T00:00:00');
+            const day = (d.getDay() + 6) % 7;
+            d.setDate(d.getDate() - day); // Lunedì della settimana
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${dd}`;
+        }
+
         function computeEF(d) {
-            const hr = parseFloat(d.fc_media);
+            const hr = num(d.fc_media);
             if (!hr || hr <= 0) return null;
-            const watts = parseFloat(d.potenza_norm_w) || parseFloat(d.potenza_media_w);
+            const watts = getBestNP(d) || num(d.potenza_media_w);
             if (watts && watts > 0) return watts / hr;
-            const speedKmh = parseFloat(d.vel_media_kmh);
+            const speedKmh = num(d.vel_media_kmh);
             if (speedKmh && speedKmh > 0) return ((speedKmh * 1000) / 60) / hr;
             return null;
         }
 
         function updatePowerCurve(data) {
-            const weightStr = document.getElementById('weightInput').value;
-            const weight = parseFloat(weightStr) || 78;
-            
+            const weight = parseFloat(document.getElementById('weightInput').value) || 78;
             const maxPeaks = {};
             POWER_WINDOWS.forEach(win => maxPeaks[win.id] = 0);
-            
+
             data.forEach(row => {
                 POWER_WINDOWS.forEach(win => {
                     const val = parseFloat(row[win.id]);
-                    if (!isNaN(val) && val > maxPeaks[win.id]) {
-                        maxPeaks[win.id] = val;
-                    }
+                    if (!isNaN(val) && val > maxPeaks[win.id]) maxPeaks[win.id] = val;
                 });
             });
 
-            const bgColors = { 'anaerobic': 'bg-rose-50 border-rose-200', 'vo2': 'bg-amber-50 border-amber-200', 'threshold': 'bg-emerald-50 border-emerald-200', 'aerobic': 'bg-blue-50 border-blue-200' };
-            const textColors = { 'anaerobic': 'text-rose-600', 'vo2': 'text-amber-600', 'threshold': 'text-emerald-600', 'aerobic': 'text-blue-600' };
+            const bgColors = { anaerobic: 'bg-rose-50 border-rose-200', vo2: 'bg-amber-50 border-amber-200', threshold: 'bg-emerald-50 border-emerald-200', aerobic: 'bg-blue-50 border-blue-200' };
+            const textColors = { anaerobic: 'text-rose-600', vo2: 'text-amber-600', threshold: 'text-emerald-600', aerobic: 'text-blue-600' };
 
             const grid = document.getElementById('curve-grid');
             grid.innerHTML = '';
-            
-            let curveData = [];
+            const curveData = [];
 
             POWER_WINDOWS.forEach(win => {
                 const w = maxPeaks[win.id];
                 const wkg = w > 0 ? (w / weight).toFixed(2) : '-';
-                const displayW = w > 0 ? w : '-';
-                
                 curveData.push(w > 0 ? w : null);
 
                 const card = document.createElement('div');
@@ -404,13 +441,12 @@
                 card.innerHTML = `
                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">${win.label}</span>
                     <span class="text-xl font-bold ${textColors[win.type]}">${wkg}</span>
-                    <span class="text-[10px] text-slate-500 mt-1">${displayW} W</span>
+                    <span class="text-[10px] text-slate-500 mt-1">${w > 0 ? w : '-'} W</span>
                 `;
                 grid.appendChild(card);
             });
 
-            if (charts['powerCurve']) { charts['powerCurve'].destroy(); }
-            
+            if (charts['powerCurve']) charts['powerCurve'].destroy();
             const ctx = document.getElementById('powerCurveChart').getContext('2d');
             charts['powerCurve'] = new Chart(ctx, {
                 type: 'line',
@@ -447,12 +483,12 @@
 
             document.getElementById('kpi-count').textContent = `${data.length} sess.`;
             const totalDist = data.reduce((s, d) => s + (parseFloat(d.distanza_km) || 0), 0);
-            document.getElementById('kpi-distance').innerHTML = `${totalDist.toLocaleString('it-IT', {maximumFractionDigits: 1})} <span class="text-base font-normal text-slate-500">km</span>`;
-            
+            document.getElementById('kpi-distance').innerHTML = `${totalDist.toLocaleString('it-IT', { maximumFractionDigits: 1 })} <span class="text-base font-normal text-slate-500">km</span>`;
+
             const totalMins = data.reduce((s, d) => s + (parseFloat(d.durata_min) || 0), 0);
             const totalElev = data.reduce((s, d) => s + (parseFloat(d.dislivello_m) || 0), 0);
-            document.getElementById('kpi-duration').innerHTML = `${(totalMins / 60).toLocaleString('it-IT', {maximumFractionDigits: 1})} <span class="text-base font-normal text-slate-500">ore</span>`;
-            document.getElementById('kpi-elevation').textContent = `Dislivello: ${totalElev.toLocaleString('it-IT', {maximumFractionDigits: 0})} m`;
+            document.getElementById('kpi-duration').innerHTML = `${(totalMins / 60).toLocaleString('it-IT', { maximumFractionDigits: 1 })} <span class="text-base font-normal text-slate-500">ore</span>`;
+            document.getElementById('kpi-elevation').textContent = `Dislivello: ${totalElev.toLocaleString('it-IT', { maximumFractionDigits: 0 })} m`;
 
             const speeds = data.map(d => parseFloat(d.vel_media_kmh)).filter(v => v > 0);
             const paces = data.map(d => parseFloat(d.passo_min_km)).filter(v => v > 0 && v < 15);
@@ -460,19 +496,22 @@
             else if (speeds.length) document.getElementById('kpi-avg-speed').textContent = `Velocità media: ${avg(speeds).toFixed(1)} km/h`;
             else document.getElementById('kpi-avg-speed').textContent = `Media: -`;
 
-            const watts = data.map(d => parseFloat(d.potenza_media_w)).filter(v => !isNaN(v) && v > 0);
-            const npWatts = data.map(d => parseFloat(d.potenza_norm_w)).filter(v => !isNaN(v) && v > 0);
-            const maxWatts = data.map(d => parseFloat(d.potenza_max_w)).filter(v => !isNaN(v) && v > 0);
-            if (watts.length) {
-                document.getElementById('kpi-power').innerHTML = `${Math.round(avg(watts))} <span class="text-base font-normal text-slate-500">W</span>`;
-                const npTxt = npWatts.length ? `${Math.round(avg(npWatts))} W` : '-';
-                const maxTxt = maxWatts.length ? `${Math.max(...maxWatts)} W` : '-';
-                document.getElementById('kpi-power-sub').textContent = `NP media: ${npTxt} | Max: ${maxTxt}`;
+            // Carico TSS & IF
+            const tssVals = data.map(d => num(d.tss)).filter(v => v !== null && v > 0);
+            const ifVals = data.map(d => num(d.if_val)).filter(v => v !== null && v > 0);
+            const totalKj = data.reduce((s, d) => s + (parseFloat(d.lavoro_kj) || 0), 0);
+            const npVals = data.map(d => getBestNP(d)).filter(v => v !== null && v > 0);
+            if (tssVals.length) {
+                const sumTss = tssVals.reduce((a, b) => a + b, 0);
+                document.getElementById('kpi-tss').innerHTML = `${Math.round(sumTss).toLocaleString('it-IT')} <span class="text-base font-normal text-slate-500">TSS</span>`;
+                document.getElementById('kpi-if-badge').textContent = ifVals.length ? `IF ${avg(ifVals).toFixed(2)}` : 'IF -';
             } else {
-                document.getElementById('kpi-power').innerHTML = `- <span class="text-base font-normal text-slate-500">W</span>`;
-                document.getElementById('kpi-power-sub').textContent = `Nessun sensore potenza`;
+                document.getElementById('kpi-tss').innerHTML = `- <span class="text-base font-normal text-slate-500">TSS</span>`;
+                document.getElementById('kpi-if-badge').textContent = 'Sync richiesto';
             }
+            document.getElementById('kpi-kj-sub').textContent = `Lavoro: ${Math.round(totalKj).toLocaleString('it-IT')} kJ | NP: ${npVals.length ? Math.round(avg(npVals)) + ' W' : '-'}`;
 
+            // FTP stimata
             const peaks = data.map(d => parseFloat(d.peak_20m_w)).filter(v => !isNaN(v) && v > 0);
             if (peaks.length) {
                 const maxPeak = Math.max(...peaks);
@@ -483,17 +522,20 @@
                 document.getElementById('kpi-ftp-sub').textContent = `Nessun dato 20m disponibile`;
             }
 
-            const hrs = data.map(d => parseFloat(d.fc_media)).filter(v => !isNaN(v) && v > 0);
-            const maxHrs = data.map(d => parseFloat(d.fc_max)).filter(v => !isNaN(v) && v > 0);
-            if (hrs.length) {
-                document.getElementById('kpi-hr').innerHTML = `${Math.round(avg(hrs))} <span class="text-base font-normal text-slate-500">bpm</span>`;
-                document.getElementById('kpi-hr-sub').textContent = `Picco max registrato: ${maxHrs.length ? Math.max(...maxHrs) + ' bpm' : '-'}`;
+            // Stimolo VO2Max Cardio (Z5 >=90% FCmax)
+            const hrZ5Vals = data.map(d => num(d.tiz_hr_z5_m)).filter(v => v !== null);
+            const hrs = data.map(d => num(d.fc_media)).filter(v => v !== null && v > 0);
+            const maxHrs = data.map(d => num(d.fc_max)).filter(v => v !== null && v > 0);
+            if (hrZ5Vals.length) {
+                const sumZ5 = hrZ5Vals.reduce((a, b) => a + b, 0);
+                document.getElementById('kpi-hr-z5').innerHTML = `${sumZ5.toFixed(1)} <span class="text-base font-normal text-slate-500">min</span>`;
             } else {
-                document.getElementById('kpi-hr').innerHTML = `- <span class="text-base font-normal text-slate-500">bpm</span>`;
-                document.getElementById('kpi-hr-sub').textContent = `Nessun dato cardio`;
+                document.getElementById('kpi-hr-z5').innerHTML = `- <span class="text-base font-normal text-slate-500">min</span>`;
             }
+            document.getElementById('kpi-hr-sub').textContent = `FC media: ${hrs.length ? Math.round(avg(hrs)) + ' bpm' : '-'} | Max: ${maxHrs.length ? Math.max(...maxHrs) + ' bpm' : '-'}`;
 
-            const decs = data.map(d => parseFloat(d.decoupling_pct)).filter(v => !isNaN(v));
+            // Decoupling pulito
+            const decs = data.map(d => getBestDecoupling(d)).filter(v => v !== null);
             if (decs.length) {
                 const avgDec = avg(decs);
                 const colorClass = avgDec < 5 ? 'text-purple-600' : 'text-amber-600';
@@ -502,25 +544,103 @@
                 document.getElementById('kpi-decoupling').innerHTML = `- <span class="text-base font-normal text-slate-500">%</span>`;
             }
 
+            // Cadenza Work vs Easy + EF
+            const cadWorks = data.map(d => num(d.cad_work_rpm)).filter(v => v !== null && v > 0);
+            const cadEasys = data.map(d => num(d.cad_easy_rpm)).filter(v => v !== null && v > 0);
+            const cadAll = data.map(d => num(d.cadenza_media)).filter(v => v !== null && v > 0);
             const efValues = data.map(d => computeEF(d)).filter(v => v !== null);
-            const cads = data.map(d => parseFloat(d.cadenza_media)).filter(v => !isNaN(v) && v > 0);
-            let cadText = cads.length ? `${Math.round(avg(cads))} ${isRunOnly ? 'spm' : 'rpm'}` : '-';
-            
-            if (efValues.length) {
-                document.getElementById('kpi-ef').innerHTML = `${avg(efValues).toFixed(2)}`;
-                document.getElementById('kpi-ef-sub').textContent = `Output per battito | Cad: ${cadText}`;
+            if (cadWorks.length) {
+                document.getElementById('kpi-cad-work').innerHTML = `${avg(cadWorks).toFixed(1)} <span class="text-base font-normal text-slate-500">rpm</span>`;
+                document.getElementById('kpi-cad-sub').textContent = `Easy: ${cadEasys.length ? avg(cadEasys).toFixed(0) + ' rpm' : '-'} | EF: ${efValues.length ? avg(efValues).toFixed(2) : '-'}`;
             } else {
-                document.getElementById('kpi-ef').innerHTML = `-`;
-                document.getElementById('kpi-ef-sub').textContent = `Cadenza: ${cadText}`;
+                document.getElementById('kpi-cad-work').innerHTML = `${cadAll.length ? Math.round(avg(cadAll)) : '-'} <span class="text-base font-normal text-slate-500">rpm</span>`;
+                document.getElementById('kpi-cad-sub').textContent = `Media globale | EF: ${efValues.length ? avg(efValues).toFixed(2) : '-'}`;
             }
 
-            const totalKj = data.reduce((s, d) => s + (parseFloat(d.lavoro_kj) || 0), 0);
-            const totalEffort = data.reduce((s, d) => s + (parseFloat(d.suffer_score) || 0), 0);
-            document.getElementById('kpi-kj').innerHTML = totalKj > 0 ? `${Math.round(totalKj).toLocaleString('it-IT')} <span class="text-sm font-normal text-slate-500">kJ</span>` : `${Math.round(totalEffort)} <span class="text-sm font-normal text-slate-500">pts</span>`;
-            document.getElementById('kpi-effort-sub').textContent = `Suffer Score totale: ${Math.round(totalEffort)}`;
+            // Potenza Media / Max
+            const watts = data.map(d => num(d.potenza_media_w)).filter(v => v !== null && v > 0);
+            const maxWatts = data.map(d => num(d.potenza_max_w)).filter(v => v !== null && v > 0);
+            if (watts.length) {
+                document.getElementById('kpi-power').innerHTML = `${Math.round(avg(watts))} <span class="text-base font-normal text-slate-500">W</span>`;
+                document.getElementById('kpi-power-sub').textContent = `NP 30s: ${npVals.length ? Math.round(avg(npVals)) + ' W' : '-'} | Max: ${maxWatts.length ? Math.max(...maxWatts) + ' W' : '-'}`;
+            } else {
+                document.getElementById('kpi-power').innerHTML = `- <span class="text-base font-normal text-slate-500">W</span>`;
+                document.getElementById('kpi-power-sub').textContent = `Nessun sensore potenza`;
+            }
         }
 
         function updateCharts(data) {
+            // 1) NUOVO: Carico Settimanale TSS & Minuti Z5 Cardio
+            if (charts['weeklyLoad']) charts['weeklyLoad'].destroy();
+            const weekly = {};
+            data.forEach(d => {
+                const tss = num(d.tss);
+                const z5 = num(d.tiz_hr_z5_m);
+                if (tss === null && z5 === null) return;
+                const wk = getISOWeekKey(d.data);
+                if (!weekly[wk]) weekly[wk] = { tss: 0, z5: 0 };
+                if (tss !== null) weekly[wk].tss += tss;
+                if (z5 !== null) weekly[wk].z5 += z5;
+            });
+            const wkKeys = Object.keys(weekly).sort().slice(-14);
+            const ctxWk = document.getElementById('weeklyLoadChart').getContext('2d');
+            charts['weeklyLoad'] = new Chart(ctxWk, {
+                type: 'bar',
+                data: {
+                    labels: wkKeys.map(k => formatDateIT(k).slice(0, 5)),
+                    datasets: [
+                        { label: 'TSS Settimanale', data: wkKeys.map(k => Math.round(weekly[k].tss)), backgroundColor: 'rgba(249, 115, 22, 0.8)', borderRadius: 6, yAxisID: 'y' },
+                        { label: 'Minuti >=90% FCmax', data: wkKeys.map(k => Number(weekly[k].z5.toFixed(1))), type: 'line', borderColor: '#e11d48', backgroundColor: '#e11d48', tension: 0.3, pointRadius: 4, yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: { position: 'left', title: { display: true, text: 'TSS' }, beginAtZero: true },
+                        y1: { position: 'right', title: { display: true, text: 'Minuti Z5 FC' }, beginAtZero: true, grid: { drawOnChartArea: false } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // 2) NUOVO: Distribuzione Tempo in Zona Potenza (Z1-Z6)
+            if (charts['tizPower']) charts['tizPower'].destroy();
+            const zSums = [0, 0, 0, 0, 0, 0];
+            const zKeys = ['tiz_p_z1_m', 'tiz_p_z2_m', 'tiz_p_z3_m', 'tiz_p_z4_m', 'tiz_p_z5_m', 'tiz_p_z6_m'];
+            data.forEach(d => {
+                zKeys.forEach((k, idx) => {
+                    const v = num(d[k]);
+                    if (v !== null) zSums[idx] += v;
+                });
+            });
+            const totalZoneMin = zSums.reduce((a, b) => a + b, 0);
+            const lowPct = totalZoneMin > 0 ? (((zSums[0] + zSums[1]) / totalZoneMin) * 100).toFixed(0) : 0;
+            const midPct = totalZoneMin > 0 ? (((zSums[2] + zSums[3]) / totalZoneMin) * 100).toFixed(0) : 0;
+            const hiPct = totalZoneMin > 0 ? (((zSums[4] + zSums[5]) / totalZoneMin) * 100).toFixed(0) : 0;
+            document.getElementById('tiz-summary-sub').textContent = totalZoneMin > 0
+                ? `Split: Z1-Z2 ${lowPct}% • Z3-Z4 ${midPct}% • Z5-Z6 ${hiPct}% (${(totalZoneMin / 60).toFixed(1)} ore analizzate)`
+                : `Avvia il sync GitHub per popolare i minuti in zona (Z1-Z6)`;
+
+            const ctxTiz = document.getElementById('tizPowerChart').getContext('2d');
+            charts['tizPower'] = new Chart(ctxTiz, {
+                type: 'bar',
+                data: {
+                    labels: ['Z1 Rec (<154W)', 'Z2 End (154-209W)', 'Z3 Tempo (210-251W)', 'Z4 Soglia (252-294W)', 'Z5 VO2 (295-336W)', 'Z6 Anaer (>=337W)'],
+                    datasets: [{
+                        label: 'Minuti in Zona',
+                        data: zSums.map(v => Number(v.toFixed(1))),
+                        backgroundColor: ['#94a3b8', '#3b82f6', '#10b981', '#f59e0b', '#f97316', '#e11d48'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'Minuti' } }, x: { grid: { display: false } } }
+                }
+            });
+
+            // 3) Trend FTP
             if (charts['ftp']) charts['ftp'].destroy();
             const ctxFtp = document.getElementById('ftpChart').getContext('2d');
             const validFtp = data.filter(d => parseFloat(d.peak_20m_w) > 0).slice(0, 40).reverse();
@@ -536,18 +656,29 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } } } }
             });
 
+            // 4) Decoupling (usa quello pulito quando disponibile)
             if (charts['dec']) charts['dec'].destroy();
             const ctxDec = document.getElementById('decouplingChart').getContext('2d');
-            const validDec = data.filter(d => d.decoupling_pct !== "" && parseFloat(d.durata_min) >= 40).slice(0, 30).reverse();
+            const validDec = data
+                .map(d => ({ date: d.data, val: getBestDecoupling(d), dur: parseFloat(d.durata_min) || 0 }))
+                .filter(item => item.val !== null && item.dur >= 40)
+                .slice(0, 30)
+                .reverse();
             charts['dec'] = new Chart(ctxDec, {
                 type: 'bar',
                 data: {
-                    labels: validDec.map(d => formatDateIT(d.data).slice(0, 5)),
-                    datasets: [{ label: 'Decoupling (%)', data: validDec.map(d => parseFloat(d.decoupling_pct)), backgroundColor: validDec.map(d => parseFloat(d.decoupling_pct) <= 5 ? '#8b5cf6' : '#f59e0b'), borderRadius: 4 }]
+                    labels: validDec.map(d => formatDateIT(d.date).slice(0, 5)),
+                    datasets: [{
+                        label: 'Decoupling (%)',
+                        data: validDec.map(d => d.val),
+                        backgroundColor: validDec.map(d => d.val <= 5 ? '#8b5cf6' : '#f59e0b'),
+                        borderRadius: 4
+                    }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { annotation: { annotations: { line1: { type: 'line', yMin: 5, yMax: 5, borderColor: '#ef4444', borderWidth: 2, borderDash: [2, 2] } } } }, scales: { x: { grid: { display: false } } } }
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } } } }
             });
 
+            // 5) Volume mensile
             if (charts['volume']) charts['volume'].destroy();
             const ctxVol = document.getElementById('volumeChart').getContext('2d');
             const monthly = {};
@@ -571,6 +702,7 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { position: 'left' }, y1: { position: 'right', grid: { drawOnChartArea: false } }, x: { grid: { display: false } } } }
             });
 
+            // 6) Efficienza Aerobica (EF)
             if (charts['ef']) charts['ef'].destroy();
             const ctxEf = document.getElementById('efficiencyChart').getContext('2d');
             const validEf = data.map(d => ({ date: d.data, ef: computeEF(d) })).filter(item => item.ef !== null).slice(0, 40).reverse();
@@ -585,24 +717,60 @@
         }
 
         function updateTable(data) {
+            const query = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+            const searched = query ? data.filter(r => (r.nome || '').toLowerCase().includes(query)) : data;
+
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
-            const rowsToRender = showAllRows ? data : data.slice(0, 25);
+            const rowsToRender = showAllRows ? searched : searched.slice(0, 25);
+            document.getElementById('table-count-info').textContent =
+                `Visualizzati ${rowsToRender.length} di ${searched.length} allenamenti`;
 
             rowsToRender.forEach(row => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50/80 transition border-b border-slate-100";
-                
-                let powerText = parseFloat(row.potenza_media_w) > 0 ? `<strong>${row.potenza_media_w}W</strong> / NP ${row.potenza_norm_w}W` : '-';
-                
+
+                const npVal = getBestNP(row);
+                const powerText = num(row.potenza_media_w) > 0
+                    ? `<strong>${row.potenza_media_w}W</strong>${npVal ? ` / NP ${Math.round(npVal)}W` : ''}`
+                    : '-';
+
+                const tssVal = num(row.tss);
+                const ifVal = num(row.if_val);
+                const tssText = tssVal !== null
+                    ? `<strong class="text-orange-600">${tssVal.toFixed(0)}</strong>${ifVal ? ` <span class="text-xs text-slate-400">(${ifVal.toFixed(2)})</span>` : ''}`
+                    : '-';
+
+                const z5Min = num(row.tiz_hr_z5_m);
+                const dropout = num(row.hr_dropout_sec);
+                const hrBadge = dropout && dropout > 0
+                    ? ` <span title="${dropout}s dropout cardio" class="inline-block text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-semibold">!HR</span>`
+                    : '';
+                const hrText = row.fc_media
+                    ? `${row.fc_media}/${row.fc_max || '-'} bpm${z5Min && z5Min > 0 ? ` <span class="text-xs text-rose-600 font-semibold">(${z5Min.toFixed(1)}' Z5)</span>` : ''}${hrBadge}`
+                    : '-';
+
+                const cadWork = num(row.cad_work_rpm);
+                const fade = num(row.work_laps_fade_pct);
+                let fadeBadge = '';
+                if (fade !== null) {
+                    const cls = fade >= 0 ? 'text-emerald-600' : 'text-rose-600';
+                    fadeBadge = ` <span class="text-xs font-semibold ${cls}">(${fade > 0 ? '+' : ''}${fade}%)</span>`;
+                }
+                const cadText = cadWork ? `<strong>${cadWork}</strong> rpm${fadeBadge}` : (row.cadenza_media ? `${row.cadenza_media} rpm` : '-');
+
+                const decVal = getBestDecoupling(row);
+                const decText = decVal !== null ? `${decVal.toFixed(1)}%` : '-';
+
                 tr.innerHTML = `
-                    <td class="px-4 py-3"><div class="font-medium">${formatDateIT(row.data)}</div></td>
-                    <td class="px-4 py-3"><div class="font-medium">${row.nome || 'Allenamento'}</div></td>
-                    <td class="px-4 py-3">${parseFloat(row.distanza_km || 0).toFixed(2)} km</td>
-                    <td class="px-4 py-3">${parseFloat(row.vel_media_kmh) > 0 ? row.vel_media_kmh + ' km/h' : '-'}</td>
-                    <td class="px-4 py-3">${powerText}</td>
-                    <td class="px-4 py-3">${row.fc_media || '-'} bpm</td>
-                    <td class="px-4 py-3">${parseFloat(row.decoupling_pct) ? parseFloat(row.decoupling_pct).toFixed(1) + '%' : '-'}</td>
+                    <td class="px-4 py-3 whitespace-nowrap"><div class="font-medium">${formatDateIT(row.data)}</div></td>
+                    <td class="px-4 py-3"><div class="font-medium text-slate-900">${row.nome || 'Allenamento'}</div></td>
+                    <td class="px-4 py-3 whitespace-nowrap">${parseFloat(row.distanza_km || 0).toFixed(1)} km <span class="text-xs text-slate-400">(${row.durata_min || '-'}')</span></td>
+                    <td class="px-4 py-3 whitespace-nowrap">${powerText}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${tssText}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${hrText}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${cadText}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${decText}</td>
                 `;
                 tbody.appendChild(tr);
             });
